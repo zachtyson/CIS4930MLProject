@@ -1,2 +1,4 @@
 /CIS4930MLProject.iml
 /.idea/
+/frontend-colorization/node_modules/
+/frontend-colorization/.vscode/
