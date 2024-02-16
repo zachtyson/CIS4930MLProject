@@ -2,3 +2,7 @@
 /.idea/
 /frontend-colorization/node_modules/
 /frontend-colorization/.vscode/
+/ml_model/venv
+/ml_model/data
+ml_model.iml
+frontend-colorization.iml
