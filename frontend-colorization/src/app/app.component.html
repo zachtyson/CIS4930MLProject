@@ -1,1 +1,9 @@
-<router-outlet></router-outlet>
+<!-- app.component.html -->
+<div class="upload-container">
+  <input type="file" (change)="onFileSelected($event)">
+  <button (click)="onUpload()">Upload</button>
+  <!-- Image display -->
+  <div *ngIf="imageSrc" class="image-container">
+    <img [src]="imageSrc" alt="Colorized Image"/>
+  </div>
+</div>
