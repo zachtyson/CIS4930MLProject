@@ -118,7 +118,6 @@ def main():
     image_path = 'myphoto.jpg'
     image = Image.open(image_path).convert('L')
     transform = transforms.Compose([
-        transforms.Resize((256, 256)),
         transforms.ToTensor(),
     ])
     input_image = transform(image).unsqueeze(0)  # Add batch dimension
@@ -130,7 +129,8 @@ def main():
     # Convert the output tensor to an image
     output_image = output.squeeze().cpu().detach()
     output_image = to_pil_image(output_image)
-    # denormalize the image
+    # fix resolution (?) for some reason mixing a single horizontal line of pixels
+
 
 
     output_image.save('myphoto_colorized.jpg')
