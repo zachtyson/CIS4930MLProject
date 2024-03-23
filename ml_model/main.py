@@ -1,3 +1,4 @@
+
 import torch
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +10,8 @@ from torchvision.transforms.functional import to_pil_image
 import train_model
 from colorization_net import ColorizationNet
 from PIL import Image
+from io import BytesIO
+import base64
 
 app = FastAPI()
 
@@ -44,6 +47,10 @@ model.eval()
 
 @app.post("/api/colorize")
 async def colorize_image(file: UploadFile = File(...)):
+    # Verify that the file is an image
+    if file.content_type.split('/')[0] != 'image':
+        return {"error": "Invalid file type"}
+
     # Turn uploaded file into a PIL image
     image = Image.open(file.file).convert('L')  # Convert to grayscale
     transform = transforms.Compose([
@@ -59,8 +66,12 @@ async def colorize_image(file: UploadFile = File(...)):
     output_image = output.squeeze().cpu().detach()
     output_image = to_pil_image(output_image)
 
-    # return base64 encoded image
-    return {"image": output_image}
+    # Save the image to a BytesIO object
+    image_bytes = BytesIO()
+    output_image.save(image_bytes, format='JPEG')
+    img_str = base64.b64encode(image_bytes.getvalue()).decode()
+
+    return {"image": img_str}
 
 
 @app.on_event("startup")
