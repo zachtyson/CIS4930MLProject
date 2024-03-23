@@ -42,9 +42,7 @@ else:
     model.load_state_dict(torch.load('colorization_model.pth'))
 model.eval()
 
-app.post("/api/colorize")
-
-
+@app.post("/api/colorize")
 async def colorize_image(file: UploadFile = File(...)):
     # Turn uploaded file into a PIL image
     image = Image.open(file.file).convert('L')  # Convert to grayscale
