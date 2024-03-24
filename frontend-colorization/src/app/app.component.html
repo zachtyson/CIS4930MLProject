@@ -1,9 +1,23 @@
-<!-- app.component.html -->
-<div class="upload-container">
-  <input type="file" (change)="onFileSelected($event)">
-  <button (click)="onUpload()">Upload</button>
-  <!-- Image display -->
-  <div *ngIf="imageSrc" class="image-container">
-    <img [src]="imageSrc" alt="Colorized Image"/>
+<nav class="navbar">
+  <div class="logo">Logo Here</div>
+</nav>
+
+<div class="main-container">
+
+  <div class="upload-container section">
+    <h2>Upload Your File</h2>
+    <input type="file" (change)="onFileSelected($event)">
+    <button class="btn-upload" (click)="onUpload()">Upload</button>
+    <div *ngIf="imageSrc" class="image-container">
+      <img [src]="imageSrc" alt="Processed Image"/>
+    </div>
   </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
 </div>

@@ -1,7 +1,5 @@
-// app.component.ts
 import { Component } from '@angular/core';
 import { ImageColorizationService } from "./image-colorization.service";
-
 
 @Component({
   selector: 'app-root',
@@ -10,7 +8,9 @@ import { ImageColorizationService } from "./image-colorization.service";
 })
 export class AppComponent {
   selectedFile: File | null = null;
-  imageSrc: string = ''; // Add this line
+  imageSrc: string = '';
+  successMessage: string = '';
+  errorMessage: string = '';
 
   constructor(private fileUploadService: ImageColorizationService) { }
 
@@ -20,16 +20,19 @@ export class AppComponent {
 
   onUpload() {
     if (!this.selectedFile) {
+      this.errorMessage = 'Please select a file to upload.';
       return;
     }
     this.fileUploadService.uploadFile(this.selectedFile).subscribe(response => {
       const i: ImageColorizationResponse = response as ImageColorizationResponse;
-      console.log('Upload success', i);
-      if (i.image) { // Assuming 'image' is the key in the response containing the base64 string
+      this.successMessage = 'Upload success';
+      this.errorMessage = ''; // Clear any previous error messages
+      if (i.image) {
         this.imageSrc = 'data:image/jpeg;base64,' + i.image;
       }
     }, error => {
-      console.error('Upload error', error);
+      this.errorMessage = 'Upload error: ' + error.message;
+      this.successMessage = ''; // Clear any previous success messages
     });
   }
 }
