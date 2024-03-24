@@ -13,6 +13,17 @@ from PIL import Image
 from io import BytesIO
 import base64
 
+# check to see if colorization_model.pth exists, if not, train the model
+model = None
+if not os.path.exists('colorization_model.pth'):
+    print('Training model')
+    model = train_model.train_model()
+else:
+    print('Model already trained')
+    model = ColorizationNet()
+    model.load_state_dict(torch.load('colorization_model.pth'))
+model.eval()
+
 app = FastAPI()
 
 # small app, shouldn't need to split into multiple files
@@ -32,18 +43,6 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
-
-
-# check to see if colorization_model.pth exists, if not, train the model
-model = None
-if not os.path.exists('colorization_model.pth'):
-    print('Training model')
-    model = train_model.train_model()
-else:
-    print('Model already trained')
-    model = ColorizationNet()
-    model.load_state_dict(torch.load('colorization_model.pth'))
-model.eval()
 
 @app.post("/api/colorize")
 async def colorize_image(file: UploadFile = File(...)):
