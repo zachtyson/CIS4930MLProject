@@ -12,18 +12,20 @@ from PIL import Image
 from io import BytesIO
 import base64
 
+file_name = 'colorization_model.pth'
+
 # check to see if colorization_model.pth exists, if not, train the model
 model = None
-if not os.path.exists('colorization_model.pth'):
+if not os.path.exists(file_name):
     print('Training model')
-    model = train_model.train_model()
+    model = train_model.train_model(file_name)
     # if model is not None, use cuda
     if model is not None:
         model = model.to('cuda')
 else:
     print('Model already trained')
     model = ColorizationNet()
-    model.load_state_dict(torch.load('colorization_model.pth'))
+    model.load_state_dict(torch.load(file_name))
     model = model.to('cuda')
 model.eval()
 

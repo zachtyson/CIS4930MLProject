@@ -16,7 +16,7 @@ def psnr(label, output, max_pixel=1.0):
     return 20 * torch.log10(max_pixel / torch.sqrt(mse))
 
 
-def train_model():
+def train_model(file_name):
     print(torch.cuda.is_available())
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -79,5 +79,5 @@ def train_model():
     print(f'Accuracy of the network on the test images: {100 * correct / total}%')
 
     # save the model
-    torch.save(model.state_dict(), 'colorization_model.pth')
+    torch.save(model.state_dict(), file_name)
     return model
