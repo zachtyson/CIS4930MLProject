@@ -17,6 +17,9 @@ def psnr(label, output, max_pixel=1.0):
 
 
 def train_model():
+    print(torch.cuda.is_available())
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
     transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.ToTensor(),
@@ -29,14 +32,14 @@ def train_model():
 
     print('dataset loaded successfully!')
     # use ColorizationNet to train the model 5 epoch
-    model = ColorizationNet()
+    model = ColorizationNet().to(device)
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     for epoch in range(10):
         running_loss = 0.0
         for i, data in enumerate(dataloader, 0):
-            inputs, labels = data['black_image'], data['color_image']
+            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
@@ -59,18 +62,16 @@ def train_model():
     correct = 0
     total = 0
 
-    # Example usage in your evaluation loop
     with torch.no_grad():
         for data in test_dataloader:
-            inputs, labels = data['black_image'], data['color_image']
+            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
             outputs = model(inputs)
             psnr_value = psnr(labels, outputs)
             print(f'PSNR value: {psnr_value.item()} dB')
 
-    # these are images so we need to compute the accuracy using MSE
     with torch.no_grad():
         for data in test_dataloader:
-            inputs, labels = data['black_image'], data['color_image']
+            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
             outputs = model(inputs)
             total += (labels.size(0) * 256 * 256)
             correct += (torch.sum((outputs - labels) ** 2)).item()

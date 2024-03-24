@@ -1,4 +1,3 @@
-
 import torch
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,10 +17,14 @@ model = None
 if not os.path.exists('colorization_model.pth'):
     print('Training model')
     model = train_model.train_model()
+    # if model is not None, use cuda
+    if model is not None:
+        model = model.to('cuda')
 else:
     print('Model already trained')
     model = ColorizationNet()
     model.load_state_dict(torch.load('colorization_model.pth'))
+    model = model.to('cuda')
 model.eval()
 
 app = FastAPI()
@@ -43,6 +46,7 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 @app.post("/api/colorize")
 async def colorize_image(file: UploadFile = File(...)):
