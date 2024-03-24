@@ -4,13 +4,27 @@
 
 <div class="main-container">
 
-  <div class="upload-container section">
-    <h2>Upload Your File</h2>
-    <input type="file" (change)="onFileSelected($event)">
-    <button class="btn-upload" (click)="onUpload()">Upload</button>
-    <div *ngIf="imageSrc" class="image-container">
-      <img [src]="imageSrc" alt="Processed Image"/>
+  <div class="io-container">
+    <div class="input-container">
+      <h2>Upload Your File</h2>
+      <input type="file" (change)="onFileSelected($event)">
+      <button class="btn-upload" (click)="onUpload()">Upload</button>
     </div>
+    <div class="total-container">
+      <div class="input-container" *ngIf="selectedFile">
+        <h2>Original Image</h2>
+        <div class="image-container">
+          <img [src]="originalImageSrc" alt="Original Image"/>
+        </div>
+      </div>
+      <div class="output-container" *ngIf="imageSrc">
+        <h2>Processed Image</h2>
+        <div class="image-container">
+          <img [src]="imageSrc" alt="Processed Image"/>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div *ngIf="successMessage" class="alert alert-success">

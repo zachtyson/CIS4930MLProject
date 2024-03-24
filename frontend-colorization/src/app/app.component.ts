@@ -8,6 +8,7 @@ import { ImageColorizationService } from "./image-colorization.service";
 })
 export class AppComponent {
   selectedFile: File | null = null;
+  originalImageSrc: string = '';
   imageSrc: string = '';
   successMessage: string = '';
   errorMessage: string = '';
@@ -16,6 +17,14 @@ export class AppComponent {
 
   onFileSelected(event:any) {
     this.selectedFile = <File>event.target.files[0];
+    // convert original image to base64
+    if(this.selectedFile) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.originalImageSrc = e.target.result;
+      }
+      reader.readAsDataURL(this.selectedFile);
+    }
   }
 
   onUpload() {
