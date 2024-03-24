@@ -15,16 +15,33 @@ export class AppComponent {
 
   constructor(private fileUploadService: ImageColorizationService) { }
 
-  onFileSelected(event:any) {
-    this.selectedFile = <File>event.target.files[0];
-    // convert original image to base64
-    if(this.selectedFile) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.originalImageSrc = e.target.result;
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+
+    if (file) {
+      // Check if the file is a JPEG/JPG.
+      if (file.type.match('image/jpeg')) {
+        this.selectedFile = file;
+        // Convert original image to base64.
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.originalImageSrc = e.target.result; // The Base64 string.
+        };
+        reader.readAsDataURL(this.selectedFile);
+        this.errorMessage = '';
+      } else {
+        this.errorMessage = 'Only JPEG/JPG files are allowed.';
+        this.selectedFile = null;
       }
-      reader.readAsDataURL(this.selectedFile);
+    } else {
+      this.errorMessage = 'Please select a file.';
+      this.selectedFile = null;
+      this.successMessage = '';
     }
+    this.imageSrc = '';
+    this.successMessage = '';
+    this.originalImageSrc = '';
+
   }
 
   onUpload() {
