@@ -6,8 +6,9 @@ class ColorizationNet(nn.Module):
         super(ColorizationNet, self).__init__()
         # Encoder
         self.encoder = nn.Sequential(
-            # From my understanding, the input is a grayscale image, so the input channel is 1, goes into 32 channels with 3x3 kernel, stride 1, padding 1
-            # Honestly not really sure why I went to 128 but I'm just experimenting with random numbers
+            # From my understanding, the input is a grayscale image, so the input channel is 1, goes into 32 channels
+            # with 3x3 kernel, stride 1, padding 1 Honestly not really sure why I went to 128 but I'm just
+            # experimenting with random numbers
             nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(32),
