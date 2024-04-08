@@ -19,14 +19,12 @@ model = None
 if not os.path.exists(file_name):
     print('Training model')
     model = train_model.train_model(file_name)
-    # if model is not None, use cuda
-    if model is not None:
-        model = model.to('cuda')
 else:
     print('Model already trained')
     model = ColorizationNet()
     model.load_state_dict(torch.load(file_name))
-    model = model.to('cuda')
+# use gpu if available
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model.eval()
 
 app = FastAPI()
