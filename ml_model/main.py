@@ -25,6 +25,7 @@ else:
     model.load_state_dict(torch.load(file_name))
 # use gpu if available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model.to(device)
 model.eval()
 
 app = FastAPI()
@@ -60,6 +61,7 @@ async def colorize_image(file: UploadFile = File(...)):
         transforms.ToTensor(),
     ])
     input_image = transform(image).unsqueeze(0)  # Add batch dimension
+    input_image = input_image.to(device)
 
     # Colorize the image
     with torch.no_grad():
