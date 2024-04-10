@@ -41,37 +41,21 @@ def train_model(file_name):
 
     for epoch in range(10):
         running_loss = 0.0
-        running_psnr = 0.0
-        running_l2_saturation_loss = 0.0
-        running_criterion_loss = 0.0
         for i, data in enumerate(dataloader, 0):
             inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             # use custom loss function
             crit = criterion(outputs, labels)
-            l2_sat_loss = l2_saturation_loss(outputs, labels)
-            p = psnr(labels, outputs)
 
-            running_psnr += p.item()
-            running_l2_saturation_loss += l2_sat_loss.item()
-            running_criterion_loss += crit.item()
-
-            abs_root_l2_sat_loss = torch.sqrt(l2_sat_loss)
-
-            loss = crit + (0.0001 * abs_root_l2_sat_loss)
+            loss = crit
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
             if i % 1250 == 1249:
-                print(f'[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}')
-                print(f'[{epoch + 1}, {i + 1}] PSNR: {running_psnr / 2000}')
-                print(f'[{epoch + 1}, {i + 1}] L2 Saturation Loss: {running_l2_saturation_loss / 2000}')
-                print(f'[{epoch + 1}, {i + 1}] Criterion Loss: {running_criterion_loss / 2000}')
                 running_loss = 0.0
-                running_psnr = 0.0
-                running_l2_saturation_loss = 0.0
-                running_criterion_loss = 0.0
+                print('[%d, %5d] avg loss: %.3f' % (epoch + 1, i + 1, running_loss / 1250))
+
 
     print('Finished Training')
 
@@ -82,24 +66,13 @@ def train_model(file_name):
     test_dataset = ImageColorizationDataset('data/test_black', 'data/test_color', transform=transform)
     test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True, num_workers=4)
 
-    correct = 0
-    total = 0
-
-    with torch.no_grad():
-        for data in test_dataloader:
-            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
-            outputs = model(inputs)
-            psnr_value = psnr(labels, outputs)
-            print(f'PSNR value: {psnr_value.item()} dB')
-
-    with torch.no_grad():
-        for data in test_dataloader:
-            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
-            outputs = model(inputs)
-            total += (labels.size(0) * 256 * 256)
-            correct += (torch.sum((outputs - labels) ** 2)).item()
-
-    print(f'Accuracy of the network on the test images: {100 * correct / total}%')
+    # Test using MSE loss
+    test_loss = 0.0
+    for i, data in enumerate(test_dataloader, 0):
+        inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
+        outputs = model(inputs)
+        test_loss += criterion(outputs, labels).item()
+    print('Average test loss: ', test_loss / len(test_dataloader))
 
     # save the model
     torch.save(model.state_dict(), file_name)
