@@ -9,7 +9,7 @@ import { ImageColorizationService } from "./image-colorization.service";
 export class AppComponent {
   selectedFile: File | null = null;
   originalImageSrc: string = '';
-  imageSrc: string = '';
+  outputImgSrcs: string[] | null = null;
   successMessage: string = '';
   errorMessage: string = '';
 
@@ -38,7 +38,7 @@ export class AppComponent {
       this.selectedFile = null;
       this.successMessage = '';
     }
-    this.imageSrc = '';
+    this.outputImgSrcs = [];
     this.successMessage = '';
     this.originalImageSrc = '';
 
@@ -50,15 +50,24 @@ export class AppComponent {
       return;
     }
     this.fileUploadService.uploadFile(this.selectedFile).subscribe(response => {
-      const i: ImageColorizationResponse = response as ImageColorizationResponse;
+      console.log(response);
+      const res: any = response as any;
       this.successMessage = 'Upload success';
       this.errorMessage = ''; // Clear any previous error messages
-      if (i.image) {
-        this.imageSrc = 'data:image/jpeg;base64,' + i.image;
+      // check for keys 'colorization_model_combo_' + i
+      this.outputImgSrcs = [];
+      for (let i = 0; i < 126; i++) {
+        const key = 'colorization_model_combo_' + i+ '.pth';
+        if (key in res) {
+          // @ts-ignore
+          this.outputImgSrcs.push('data:image/jpeg;base64,' + res[key]);
+        }
       }
+      console.log(this.outputImgSrcs);
     }, error => {
       this.errorMessage = 'Upload error: ' + error.message;
       this.successMessage = ''; // Clear any previous success messages
+      this.outputImgSrcs = null;
     });
   }
 }

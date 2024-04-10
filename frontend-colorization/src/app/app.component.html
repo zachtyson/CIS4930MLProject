@@ -17,10 +17,11 @@
           <img [src]="originalImageSrc" alt="Original Image"/>
         </div>
       </div>
-      <div class="output-container" *ngIf="imageSrc">
+      <div class="output-container" *ngIf="outputImgSrcs">
         <h2>Processed Image</h2>
-        <div class="image-container">
-          <img [src]="imageSrc" alt="Processed Image"/>
+        <!-- Placeholder div since there can be multiple output images -->
+        <div class="image-container" *ngFor="let outputImgSrc of outputImgSrcs">
+          <img [src]="outputImgSrc" alt="Processed Image"/>
         </div>
       </div>
     </div>

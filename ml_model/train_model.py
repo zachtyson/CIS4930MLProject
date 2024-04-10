@@ -59,6 +59,7 @@ def train_model(file_name):
                     continue
                 p = (crit_w // gcf, l2_sat_loss_w // gcf, psnr_w // gcf)
                 if p in unique_permutations:
+                    print("Skipping, permutation already ran")
                     continue
                 unique_permutations.append(p)
 
@@ -67,7 +68,7 @@ def train_model(file_name):
 
                 model = ColorizationNet().to(device)
 
-                for epoch in range(10):
+                for epoch in range(5):
                     running_loss = 0.0
                     running_psnr = 0.0
                     running_l2_saturation_loss = 0.0
