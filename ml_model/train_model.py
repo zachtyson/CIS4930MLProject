@@ -1,4 +1,5 @@
 # https://www.kaggle.com/datasets/aayush9753/image-colorization-dataset
+import math
 
 import torch
 import torch.nn as nn
@@ -39,70 +40,68 @@ def train_model(file_name):
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-    for epoch in range(10):
-        running_loss = 0.0
-        running_psnr = 0.0
-        running_l2_saturation_loss = 0.0
-        running_criterion_loss = 0.0
-        for i, data in enumerate(dataloader, 0):
-            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            # use custom loss function
-            crit = criterion(outputs, labels)
-            l2_sat_loss = l2_saturation_loss(outputs, labels)
-            p = psnr(labels, outputs)
+    criterion_weights = [0, 1, 2, 3, 4] # testing loss function weights
+    l2_saturation_loss_weights = [0, 1, 2, 3, 4] # testing loss function weights
+    psnr_weights = [0, 1, 2, 3, 4] # testing loss function weights
+    combo_num = 0
+    total_ran = 0
+    # unique triplets of weights
+    unique_permutations = []
 
-            running_psnr += p.item()
-            running_l2_saturation_loss += l2_sat_loss.item()
-            running_criterion_loss += crit.item()
 
-            abs_root_l2_sat_loss = torch.sqrt(l2_sat_loss)
+    for crit_w in criterion_weights:
+        for l2_sat_loss_w in l2_saturation_loss_weights:
+            for psnr_w in psnr_weights:
+                file_name = 'colorization_model_combo_' + str(combo_num) + '.pth'
+                combo_num += 1
+                gcf = get_gcf(crit_w, l2_sat_loss_w, psnr_w)
+                if gcf == 0:
+                    continue
+                p = (crit_w // gcf, l2_sat_loss_w // gcf, psnr_w // gcf)
+                if p in unique_permutations:
+                    continue
+                unique_permutations.append(p)
 
-            loss = crit + (0.0001 * abs_root_l2_sat_loss)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item()
-            if i % 1250 == 1249:
-                print(f'[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}')
-                print(f'[{epoch + 1}, {i + 1}] PSNR: {running_psnr / 2000}')
-                print(f'[{epoch + 1}, {i + 1}] L2 Saturation Loss: {running_l2_saturation_loss / 2000}')
-                print(f'[{epoch + 1}, {i + 1}] Criterion Loss: {running_criterion_loss / 2000}')
-                running_loss = 0.0
-                running_psnr = 0.0
-                running_l2_saturation_loss = 0.0
-                running_criterion_loss = 0.0
+                total_ran += 1
+                print("Training model number: %d with weights: %f, %f, %f ,Total ran: %d" % (combo_num, crit_w, l2_sat_loss_w, psnr_w, total_ran))
 
-    print('Finished Training')
+                model = ColorizationNet().to(device)
 
-    # load model colorization_model.pth
-    # model.load_state_dict(torch.load('colorization_model.pth'))
+                for epoch in range(10):
+                    running_loss = 0.0
+                    running_psnr = 0.0
+                    running_l2_saturation_loss = 0.0
+                    running_criterion_loss = 0.0
+                    for i, data in enumerate(dataloader, 0):
+                        inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
+                        optimizer.zero_grad()
+                        outputs = model(inputs)
+                        # use custom loss function
+                        crit = criterion(outputs, labels)
+                        l2_sat_loss = l2_saturation_loss(outputs, labels)
+                        p = psnr(labels, outputs)
 
-    # evaluate the model on the test set
-    test_dataset = ImageColorizationDataset('data/test_black', 'data/test_color', transform=transform)
-    test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True, num_workers=4)
+                        running_psnr += p.item()
+                        running_l2_saturation_loss += l2_sat_loss.item()
+                        running_criterion_loss += crit.item()
 
-    correct = 0
-    total = 0
+                        abs_root_l2_sat_loss = torch.sqrt(l2_sat_loss)
 
-    with torch.no_grad():
-        for data in test_dataloader:
-            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
-            outputs = model(inputs)
-            psnr_value = psnr(labels, outputs)
-            print(f'PSNR value: {psnr_value.item()} dB')
+                        loss = crit * crit_w + (0.0001 * abs_root_l2_sat_loss) * l2_sat_loss_w + p * psnr_w
+                        loss.backward()
+                        optimizer.step()
+                        running_loss += loss.item()
+                        if i % 1250 == 1249:
+                            print(f'[{epoch + 1}, {i + 1}] loss: {running_loss / 2000}')
+                            print(f'[{epoch + 1}, {i + 1}] PSNR: {running_psnr / 2000}')
+                            print(f'[{epoch + 1}, {i + 1}] L2 Saturation Loss: {running_l2_saturation_loss / 2000}')
+                            print(f'[{epoch + 1}, {i + 1}] Criterion Loss: {running_criterion_loss / 2000}')
+                            running_loss = 0.0
+                            running_psnr = 0.0
+                            running_l2_saturation_loss = 0.0
+                            running_criterion_loss = 0.0
+                torch.save(model.state_dict(), file_name)
 
-    with torch.no_grad():
-        for data in test_dataloader:
-            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
-            outputs = model(inputs)
-            total += (labels.size(0) * 256 * 256)
-            correct += (torch.sum((outputs - labels) ** 2)).item()
-
-    print(f'Accuracy of the network on the test images: {100 * correct / total}%')
-
-    # save the model
-    torch.save(model.state_dict(), file_name)
     return model
 
 
@@ -158,3 +157,7 @@ def l2_saturation_loss(output, target):
 
     # Calculate the return loss
     return mean_diff
+
+
+def get_gcf(a: int, b: int, c: int) -> int:
+    return math.gcd(math.gcd(a, b), c)
