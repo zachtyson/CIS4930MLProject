@@ -52,9 +52,7 @@ def train_model(file_name):
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-            if i % 1250 == 1249:
-                running_loss = 0.0
-                print('[%d, %5d] avg loss: %.3f' % (epoch + 1, i + 1, running_loss / 1250))
+        print('Epoch: ', epoch, 'Loss: ', running_loss / len(dataloader))
 
 
     print('Finished Training')
