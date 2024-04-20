@@ -2,7 +2,7 @@
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torchvision import transforms
 from PIL import Image
 from torchvision.transforms.functional import to_pil_image
@@ -28,8 +28,8 @@ def train_model(file_name):
     ])
 
     dataset = ImageColorizationDataset('data/train_black', 'data/train_color', transform=transform)
-
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=4)
+
 
     print('dataset loaded successfully!')
     # use ColorizationNet to train the model 5 epoch
