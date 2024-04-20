@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ImageColorizationService } from "./image-colorization.service";
 
 @Component({
@@ -7,10 +7,19 @@ import { ImageColorizationService } from "./image-colorization.service";
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  selectedFiles: File[] = [];
+  @ViewChild('fileInput') fileInput: ElementRef<HTMLInputElement> | undefined;
   successMessage: string = '';
   errorMessage: string = '';
   images: { original: string, processed?: string, expanded?: boolean }[] = [];
+
+  constructor(private fileUploadService: ImageColorizationService) { }
+
+  addImages(): void {
+    if (!this.fileInput) {
+      return;
+    }
+    this.fileInput.nativeElement.click();
+  }
 
   toggleImage(index: number): void {
     this.images[index].expanded = !this.images[index].expanded;
@@ -19,8 +28,6 @@ export class AppComponent {
   removeImage(index: number): void {
     this.images.splice(index, 1); // Removes the image from the array
   }
-
-  constructor(private fileUploadService: ImageColorizationService) { }
 
   onFileSelected(event: any) {
     const files: FileList = event.target.files;
@@ -49,38 +56,32 @@ export class AppComponent {
       if (file.type.match('image/jpeg')) {
         const reader = new FileReader();
         reader.onload = (e: any) => {
-          this.images.push({original: e.target.result});
+          const imgData = { original: e.target.result, expanded: false };
+          this.images.push(imgData);
+          this.uploadImage(file, this.images.length - 1);
         };
         reader.readAsDataURL(file);
-        this.selectedFiles.push(file);
       } else {
         this.errorMessage = 'Only JPEG/JPG files are allowed.';
       }
     }
   }
 
-  onUpload() {
-    if (!this.selectedFiles.length) {
-      this.errorMessage = 'Please select a file to upload.';
-      return;
-    }
-    for (let j = 0; j < this.selectedFiles.length; j++) {
-      this.fileUploadService.uploadFile(this.selectedFiles[j]).subscribe(response => {
-        const i: ImageColorizationResponse = response as ImageColorizationResponse;
-        this.successMessage = 'Upload success';
-        this.errorMessage = ''; // Clear any previous error messages
-        if (i.image) {
-          this.images[j].processed = 'data:image/jpeg;base64,' + i.image;
-        }
-      }, error => {
-        this.errorMessage = 'Upload error: ' + error.message;
-        this.successMessage = ''; // Clear any previous success messages
-      });
-    }
+  uploadImage(file: File, index: number) {
+    this.fileUploadService.uploadFile(file).subscribe(response => {
+      const imgResponse: ImageColorizationResponse = response as ImageColorizationResponse;
+      this.successMessage = 'Upload success';
+      this.errorMessage = '';
+      if (imgResponse.image) {
+        this.images[index].processed = 'data:image/jpeg;base64,' + imgResponse.image;
+      }
+    }, error => {
+      this.errorMessage = 'Upload error: ' + error.message;
+      this.successMessage = '';
+    });
   }
 }
 
 interface ImageColorizationResponse {
   image: string;
 }
-

@@ -13,7 +13,8 @@
         Drag your files here or click the button to upload
         <input type="file" (change)="onFileSelected($event)" multiple hidden>
       </div>
-      <button class="btn-upload" (click)="onUpload()">Upload</button>
+      <input type="file" #fileInput (change)="onFileSelected($event)" multiple hidden accept=".jpg, .jpeg">
+      <button class="btn-upload" (click)="addImages()">Add Images</button>
     </div>
     <div class="image-container">
       <div *ngFor="let image of images; let i = index" class="image-section">
