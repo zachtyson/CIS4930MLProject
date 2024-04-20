@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ImageColorizationService } from "./image-colorization.service";
 
 @Component({
@@ -7,58 +7,77 @@ import { ImageColorizationService } from "./image-colorization.service";
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  selectedFile: File | null = null;
-  originalImageSrc: string = '';
-  imageSrc: string = '';
+  @ViewChild('fileInput') fileInput: ElementRef<HTMLInputElement> | undefined;
   successMessage: string = '';
   errorMessage: string = '';
+  images: { original: string, processed?: string, expanded?: boolean }[] = [];
 
   constructor(private fileUploadService: ImageColorizationService) { }
 
-  onFileSelected(event: any) {
-    const file: File = event.target.files[0];
-
-    if (file) {
-      // Check if the file is a JPEG/JPG.
-      if (file.type.match('image/jpeg')) {
-        this.selectedFile = file;
-        // Convert original image to base64.
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.originalImageSrc = e.target.result; // The Base64 string.
-        };
-        reader.readAsDataURL(this.selectedFile);
-        this.errorMessage = '';
-      } else {
-        this.errorMessage = 'Only JPEG/JPG files are allowed.';
-        this.selectedFile = null;
-      }
-    } else {
-      this.errorMessage = 'Please select a file.';
-      this.selectedFile = null;
-      this.successMessage = '';
-    }
-    this.imageSrc = '';
-    this.successMessage = '';
-    this.originalImageSrc = '';
-
-  }
-
-  onUpload() {
-    if (!this.selectedFile) {
-      this.errorMessage = 'Please select a file to upload.';
+  addImages(): void {
+    if (!this.fileInput) {
       return;
     }
-    this.fileUploadService.uploadFile(this.selectedFile).subscribe(response => {
-      const i: ImageColorizationResponse = response as ImageColorizationResponse;
+    this.fileInput.nativeElement.click();
+  }
+
+  toggleImage(index: number): void {
+    this.images[index].expanded = !this.images[index].expanded;
+  }
+
+  removeImage(index: number): void {
+    this.images.splice(index, 1); // Removes the image from the array
+  }
+
+  onFileSelected(event: any) {
+    const files: FileList = event.target.files;
+    this.processFiles(files);
+  }
+
+  onFilesDropped(event: DragEvent) {
+    event.preventDefault();
+    if (event.dataTransfer && event.dataTransfer.files) {
+      const files: FileList = event.dataTransfer.files;
+      this.processFiles(files);
+    }
+  }
+
+  onDragOver(event: Event) {
+    event.preventDefault();
+  }
+
+  onDragLeave(event: Event) {
+    event.preventDefault();
+  }
+
+  processFiles(files: FileList) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.match('image/jpeg')) {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          const imgData = { original: e.target.result, expanded: false };
+          this.images.push(imgData);
+          this.uploadImage(file, this.images.length - 1);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        this.errorMessage = 'Only JPEG/JPG files are allowed.';
+      }
+    }
+  }
+
+  uploadImage(file: File, index: number) {
+    this.fileUploadService.uploadFile(file).subscribe(response => {
+      const imgResponse: ImageColorizationResponse = response as ImageColorizationResponse;
       this.successMessage = 'Upload success';
-      this.errorMessage = ''; // Clear any previous error messages
-      if (i.image) {
-        this.imageSrc = 'data:image/jpeg;base64,' + i.image;
+      this.errorMessage = '';
+      if (imgResponse.image) {
+        this.images[index].processed = 'data:image/jpeg;base64,' + imgResponse.image;
       }
     }, error => {
       this.errorMessage = 'Upload error: ' + error.message;
-      this.successMessage = ''; // Clear any previous success messages
+      this.successMessage = '';
     });
   }
 }

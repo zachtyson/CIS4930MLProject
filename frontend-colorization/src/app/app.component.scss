@@ -16,6 +16,12 @@ body, html {
   text-align: center;
 }
 
+.drag-drop-area {
+  border: 2px dashed #007bff;
+  padding: 2rem;
+  cursor: pointer;
+}
+
 .section {
   margin-bottom: 1.25rem;
 }
@@ -48,13 +54,6 @@ body, html {
   background-color: #dc3545;
 }
 
-.image-container {
-  img {
-    max-width: 20vw;
-    height: auto;
-  }
-}
-
 .input-container + .output-container {
   margin-left: 1rem;
 }
@@ -64,4 +63,69 @@ body, html {
   flex-direction: row;
   justify-content: center;
   align-items: center;
+}
+
+.image-container .image-list .image-pair {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.image {
+  max-width: 45vw; /* Adjust size accordingly */
+  margin: 0 1rem;
+}
+
+.remove-btn {
+  padding: 5px 10px;
+  margin-left: 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background-color: #c82333;
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+}
+
+.status-bar:hover {
+  background-color: #0056b3;
+}
+
+.icon-plus:before {
+  content: "+";
+}
+
+.icon-minus:before {
+  content: "-";
+}
+
+.icon {
+  width: 10%;
+}
+
+.image-details img {
+  max-width: 30vw;
+  max-height: 30vh;
+  width: auto;
+  height: auto;
+  display: block;
+  margin-top: 10px;
+}
+
+
+.image-container {
+  margin-top: 20px;
 }

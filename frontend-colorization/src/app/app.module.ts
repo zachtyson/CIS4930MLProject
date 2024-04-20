@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import {NgOptimizedImage} from "@angular/common";
 import {HttpClientModule} from "@angular/common/http";
 import {ImageColorizationService} from "./image-colorization.service";
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import {ImageColorizationService} from "./image-colorization.service";
     BrowserModule,
     AppRoutingModule,
     NgOptimizedImage,
-    HttpClientModule
+    HttpClientModule,
+    BrowserAnimationsModule
   ],
   providers: [ImageColorizationService],
   bootstrap: [AppComponent]
