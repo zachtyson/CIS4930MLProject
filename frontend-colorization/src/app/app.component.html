@@ -1,37 +1,43 @@
 <nav class="navbar">
-  <div class="logo">Image Colorization</div>
+  <div class="logo">ColorWebApp</div>
 </nav>
 
 <div class="main-container">
-
   <div class="io-container">
     <div class="input-container">
-      <h2>Upload Your File</h2>
-      <input type="file" (change)="onFileSelected($event)">
+      <h2>Upload Your Files</h2>
+      <div class="drag-drop-area"
+           (drop)="onFilesDropped($event)"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)">
+        Drag your files here or click the button to upload
+        <input type="file" (change)="onFileSelected($event)" multiple hidden>
+      </div>
       <button class="btn-upload" (click)="onUpload()">Upload</button>
     </div>
-    <div class="total-container">
-      <div class="input-container" *ngIf="selectedFile">
-        <h2>Original Image</h2>
-        <div class="image-container">
-          <img [src]="originalImageSrc" alt="Original Image"/>
+    <div class="image-container">
+      <div *ngFor="let image of images; let i = index" class="image-section">
+        <div class="status-bar">
+          <div (click)="toggleImage(i)">
+            <i class="icon" [ngClass]="{'icon-plus': !image.expanded, 'icon-minus': image.expanded}"></i>
+            <span>{{ image.processed ? 'Processed' : 'Unprocessed' }}</span>
+          </div>
+          <button class="remove-btn" (click)="removeImage(i); $event.stopPropagation();">
+            X
+          </button>
         </div>
-      </div>
-      <div class="output-container" *ngIf="imageSrc">
-        <h2>Processed Image</h2>
-        <div class="image-container">
-          <img [src]="imageSrc" alt="Processed Image"/>
+        <div *ngIf="image.expanded" class="image-details">
+          <img [src]="image.original" alt="Original image">
+          <img *ngIf="image.processed" [src]="image.processed" alt="Processed image">
         </div>
       </div>
     </div>
 
+    <div *ngIf="successMessage" class="alert alert-success">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
   </div>
-
-  <div *ngIf="successMessage" class="alert alert-success">
-    {{ successMessage }}
-  </div>
-  <div *ngIf="errorMessage" class="alert alert-danger">
-    {{ errorMessage }}
-  </div>
-
 </div>
