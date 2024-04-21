@@ -24,58 +24,51 @@ def train_model(file_name):
     transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.ToTensor(),
-
     ])
 
-    dataset = ImageColorizationDataset('data/train_black', 'data/train_color', transform=transform)
-    dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=4)
+    # Load training dataset
+    full_dataset = ImageColorizationDataset('data/train_black', 'data/train_color', transform=transform)
+    dataloader = DataLoader(full_dataset, batch_size=4, shuffle=True, num_workers=4)
+    print('Training dataset loaded successfully!')
 
+    # Setup Validation dataset
+    validation_dataset = ImageColorizationDataset('data/test_black', 'data/test_color', transform=transform)
+    validation_dataloader = DataLoader(validation_dataset, batch_size=4, shuffle=True, num_workers=4)
+    print('Validation dataset loaded successfully!')
 
-    print('dataset loaded successfully!')
-    # use ColorizationNet to train the model 5 epoch
+    # Initialize model and training components
     model = ColorizationNet().to(device)
-
-    # custom loss function
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+    # Training loop
     for epoch in range(10):
+        model.train()
         running_loss = 0.0
-        for i, data in enumerate(dataloader, 0):
-            inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
+        for inputs, labels in dataloader:
+            inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
-            # use custom loss function
-            crit = criterion(outputs, labels)
-
-            loss = crit
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-        print('Epoch: ', epoch, 'Loss: ', running_loss / len(dataloader))
+        print(f'Epoch: {epoch}, Training Loss: {running_loss / len(dataloader)}')
 
+        # Validation phase
+        model.eval()
+        validation_loss = 0.0
+        with torch.no_grad():
+            for inputs, labels in validation_dataloader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                loss = criterion(outputs, labels) + 0.000001 * l2_saturation_loss(outputs, labels)
+                validation_loss += loss.item()
+        print(f'Epoch: {epoch}, Validation Loss: {validation_loss / len(validation_dataloader)}')
 
     print('Finished Training')
-
-    # load model colorization_model.pth
-    # model.load_state_dict(torch.load('colorization_model.pth'))
-
-    # evaluate the model on the test set
-    test_dataset = ImageColorizationDataset('data/test_black', 'data/test_color', transform=transform)
-    test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True, num_workers=4)
-
-    # Test using MSE loss
-    test_loss = 0.0
-    for i, data in enumerate(test_dataloader, 0):
-        inputs, labels = data['black_image'].to(device), data['color_image'].to(device)
-        outputs = model(inputs)
-        test_loss += criterion(outputs, labels).item()
-    print('Average test loss: ', test_loss / len(test_dataloader))
-
-    # save the model
     torch.save(model.state_dict(), file_name)
     return model
-
 
 def rgb_to_hsv(image):
     # converts an RGB image to an HSV image
