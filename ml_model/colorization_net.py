@@ -21,22 +21,10 @@ class ColorizationNet(nn.Module):
             nn.Conv2d(128, 256, kernel_size=5, stride=2, padding=2),
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(256),
-            nn.Conv2d(256, 512, kernel_size=5, stride=2, padding=2),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(512),
-            nn.Conv2d(512, 512, kernel_size=5, stride=2, padding=2),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(512),
         )
 
         # Decoder
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(512, 512, kernel_size=5, stride=2, padding=2, output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(512),
-            nn.ConvTranspose2d(512, 256, kernel_size=5, stride=2, padding=2, output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(256),
             nn.ConvTranspose2d(256, 128, kernel_size=5, stride=2, padding=2, output_padding=1),
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(128),
